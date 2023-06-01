@@ -20,6 +20,8 @@ class CategoryFactory extends Factory
         return [
             'name' => $this->faker->name,
             'description' => $this->faker->sentence(6),
+            'image' => "https://icon-library.com/images/no-image-icon/no-image-icon-0.jpg",
+            'thumbnail' => "https://icon-library.com/images/no-image-icon/no-image-icon-0.jpg"
         ];
     }
 }

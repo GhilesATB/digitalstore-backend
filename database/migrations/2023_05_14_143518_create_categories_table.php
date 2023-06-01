@@ -14,6 +14,8 @@ return new class extends Migration {
             $table->uuid('id');
             $table->string('name')->unique();
             $table->text('description')->nullable();
+            $table->string('image')->nullable();
+            $table->string('thumbnail')->nullable();
             $table->timestamps();
         });
     }

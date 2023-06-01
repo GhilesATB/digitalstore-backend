@@ -9,16 +9,18 @@ use App\Http\Resources\CategoryCollection;
 use App\Http\Resources\CategoryResponse;
 use App\Models\Category;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Facades\Image;
 use Symfony\Component\HttpFoundation\Response;
 
-class CategoryController extends Controller
+class CategoriesController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index(): JsonResponse
     {
-        $categories = Category::all();
+        $categories = Category::paginate(request()->input('pageSize'), ['*'], 'page', request()->input('page') + 1);
 
         $categoryCollection = new CategoryCollection($categories);
 
@@ -30,13 +32,30 @@ class CategoryController extends Controller
      */
     public function store(CategoryRequest $request): JsonResponse
     {
-        $category = Category::make($request->validated());
-
         if (Category::hasName($request->input('name'))->exists()) {
             throw new CategoryNameAlreadyExistsApiException();
         }
 
-        $category->save();
+        $data = $request->validated();
+
+        if ($request->hasFile('image')) {
+
+            $imgName = time().'.'.$request->image->extension();
+            $thumbnailName = time().'_thumbnail.'.$request->image->extension();
+
+            Storage::disk('public')->putFileAs('', $request->image, $imgName);
+
+            $img = Image::make($request->image)
+                ->resize(320, 240)
+                ->encode($request->image->extension());
+
+            Storage::disk('public')->put($thumbnailName, $img);
+
+            $data = array_merge($data,
+                ['image' => Storage::url($imgName), 'thumbnail' => Storage::url($thumbnailName)]);
+        }
+
+        $category = Category::create($data);
 
         return CategoryResponse::make($category)
             ->withStatusCode(Response::HTTP_CREATED);
@@ -56,13 +75,33 @@ class CategoryController extends Controller
      */
     public function update(Category $category, CategoryRequest $request): JsonResponse
     {
-        $categoryUpdate = Category::make($request->validated());
+        $data = $request->validated();
 
-        if (Category::hasName($categoryUpdate->name)->exists() && $categoryUpdate !== $category->name) {
+        if (Category::hasName($request->input('name'))->exists() && $request->input('name') !== $category->name) {
             throw new CategoryNameAlreadyExistsApiException();
         }
 
-        $category->update($categoryUpdate->toArray());
+        if ($request->hasFile('image')) {
+
+            Storage::disk('public')->delete($category->image);
+            Storage::disk('public')->delete($category->thumbnail);
+
+            $imgName = time().'.'.$request->image->extension();
+            $thumbnailName = time().'thumbnail_.'.$request->image->extension();
+
+            Storage::disk('public')->putFileAs('', $request->image, $imgName);
+
+            $img = Image::make($request->image)
+                ->resize(320, 240)
+                ->encode($request->image->extension());
+
+            Storage::disk('public')->put('', $thumbnailName, $img);
+
+            $data = array_merge($data,
+                ['image' => Storage::url($imgName), 'thumbnail' => Storage::url($thumbnailName)]);
+        }
+
+        $category->update($data);
 
         return CategoryResponse::make($category)
             ->withStatusCode(Response::HTTP_OK);
@@ -73,6 +112,10 @@ class CategoryController extends Controller
      */
     public function destroy(Category $category): JsonResponse
     {
+        if (filled($category->image) && filled($category->thumbnail)) {
+            Storage::disk('public')->delete([$category->image, $category->thumbnail]);
+        }
+
         $category->delete();
 
         return response()->json(null, Response::HTTP_NO_CONTENT);

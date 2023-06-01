@@ -31,7 +31,7 @@ class Category extends Model
      *
      * @var array
      */
-    protected $fillable = ['name', 'description'];
+    protected $fillable = ['name', 'description', 'image', 'thumbnail'];
 
     /**
      * The attributes that should be cast.
@@ -41,10 +41,15 @@ class Category extends Model
     protected $casts = [];
 
     /**
-     * Scope a query to only include active users.
+     * Scope a query with name value.
      */
     public function scopeHasName(Builder $query, string $name): void
     {
         $query->where('name', '=', $name);
+    }
+
+    public function scopeFilterWith(Builder $query, string $col, string $operator, string $value): void
+    {
+        $query->where($col, $operator, $value);
     }
 }

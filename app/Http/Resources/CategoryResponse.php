@@ -21,8 +21,10 @@ class CategoryResponse extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'description' => $this->description,
-            'created_at' => $this->created_at->toIsoString(),
-            'updated_at' => $this->updated_at->toIsoString(),
+            'image' => url($this->image),
+            'thumbnail' => url($this->thumbnail),
+            'created_at' => $this->created_at?->toIsoString(),
+            'updated_at' => $this->updated_at?->toIsoString(),
         ];
     }
 }
