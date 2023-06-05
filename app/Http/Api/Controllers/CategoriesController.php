@@ -83,8 +83,9 @@ class CategoriesController extends Controller
 
         if ($request->hasFile('image')) {
 
-            Storage::disk('public')->delete($category->image);
-            Storage::disk('public')->delete($category->thumbnail);
+            $filesToDelete = $category->pluck('image', 'thumbnail')->toArray();
+
+            Storage::disk('public')->delete($filesToDelete);
 
             $imgName = time().'.'.$request->image->extension();
             $thumbnailName = time().'thumbnail_.'.$request->image->extension();
@@ -112,9 +113,10 @@ class CategoriesController extends Controller
      */
     public function destroy(Category $category): JsonResponse
     {
-        if (filled($category->image) && filled($category->thumbnail)) {
-            Storage::disk('public')->delete([$category->image, $category->thumbnail]);
-        }
+
+        $filesToDelete = $category->pluck('image', 'thumbnail')->toArray();
+
+        Storage::disk('public')->delete($filesToDelete);
 
         $category->delete();
 
