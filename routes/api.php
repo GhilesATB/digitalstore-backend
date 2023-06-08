@@ -22,6 +22,8 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
 
+    Route::post('users/logout', [AuthController::class, 'logout']);
+
     //categories
     Route::POST('categories/{category}', [CategoriesController::class, 'update']);
     Route::apiResource('categories', CategoriesController::class)->except(['PUT', 'PATCH']);
