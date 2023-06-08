@@ -5,7 +5,7 @@ namespace App\Exceptions;
 use Exception;
 use Symfony\Component\HttpFoundation\Response;
 
-class CategoryNameAlreadyExistsApiException extends BaseApiException
+class CategoryNameAlreadyExistsException extends BaseApiException
 {
     public const MSG_PREFIX = "Category name Already exists";
 

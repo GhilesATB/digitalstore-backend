@@ -2,7 +2,7 @@
 
 namespace App\Http\Api\Controllers;
 
-use App\Exceptions\CategoryNameAlreadyExistsApiException;
+use App\Exceptions\CategoryNameAlreadyExistsException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CategoryRequest;
 use App\Http\Resources\CategoryCollection;
@@ -33,7 +33,7 @@ class CategoriesController extends Controller
     public function store(CategoryRequest $request): JsonResponse
     {
         if (Category::hasName($request->input('name'))->exists()) {
-            throw new CategoryNameAlreadyExistsApiException();
+            throw new CategoryNameAlreadyExistsException();
         }
 
         $data = $request->validated();
@@ -78,7 +78,7 @@ class CategoriesController extends Controller
         $data = $request->validated();
 
         if (Category::hasName($request->input('name'))->exists() && $request->input('name') !== $category->name) {
-            throw new CategoryNameAlreadyExistsApiException();
+            throw new CategoryNameAlreadyExistsException();
         }
 
         if ($request->hasFile('image')) {
