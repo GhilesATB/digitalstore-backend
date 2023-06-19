@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Category;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
@@ -52,8 +53,10 @@ class CategoryTest extends TestCase
 
         $category = Category::factory()->make()->toArray();
 
-        //TODO fix issue with intervention package
-        $category['image'] = null;
+        $category['image'] = UploadedFile::fake()->image('test.jpg', 10);
+
+        Storage::disk('public')->put('test.jpg', $category['image']);
+        Storage::disk('public')->put('test_thumbnail.jpg', $category['image']);
 
         $response = $this->json('post', $this->endpoint, $category)
             ->assertCreated()
@@ -62,6 +65,9 @@ class CategoryTest extends TestCase
                     'id', 'name', 'description', 'created_at', 'updated_at'
                 ]
             ]);
+
+        Storage::disk('public')->assertExists('test.jpg');
+        Storage::disk('public')->assertExists('test_thumbnail.jpg');
 
         $this->assertModelExists(Category::find($response->getOriginalContent()['id']));
     }
@@ -74,7 +80,6 @@ class CategoryTest extends TestCase
         Category::factory()->create(['name' => 'testName'])->toArray();
         $category = Category::factory()->make(['name' => 'testName'])->toArray();
 
-        //TODO fix issue with intervention package
         $category['image'] = null;
 
         $this->json('post', $this->endpoint, $category)
@@ -108,9 +113,10 @@ class CategoryTest extends TestCase
     {
         $category = Category::factory()->create();
         $categoryData = Category::factory()->make()->toArray();
-        $categoryData['image'] = null;
+        $category['image'] = UploadedFile::fake()->image('test.jpg', 10);
 
-        //TODO fix issue with intervention package
+        Storage::disk('public')->put('test.jpg', $category['image']);
+        Storage::disk('public')->put('test_thumbnail.jpg', $category['image']);
 
         $response = $this->json('post', "{$this->endpoint}/{$category->id}", $categoryData)
             ->assertOk()
@@ -119,6 +125,9 @@ class CategoryTest extends TestCase
                     'id', 'name', 'description', 'created_at', 'updated_at'
                 ]
             ]);
+
+        Storage::disk('public')->assertExists('test.jpg');
+        Storage::disk('public')->assertExists('test_thumbnail.jpg');
 
         $this->assertModelExists(Category::find($response->getOriginalContent()['id']));
     }
@@ -148,7 +157,7 @@ class CategoryTest extends TestCase
     {
         $category = Category::factory()->create();
 
-        $response = $this->json('delete', "{$this->endpoint}/{$category->id}")->dump()
+        $this->json('delete', "{$this->endpoint}/{$category->id}")
             ->assertNoContent();
 
         $this->assertModelMissing($category);
