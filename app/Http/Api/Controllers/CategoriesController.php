@@ -8,6 +8,7 @@ use App\Http\Requests\CategoryRequest;
 use App\Http\Resources\CategoryCollection;
 use App\Http\Resources\CategoryResponse;
 use App\Models\Category;
+use App\Support\Filter\Filter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Facades\Image;
@@ -20,7 +21,29 @@ class CategoriesController extends Controller
      */
     public function index(): JsonResponse
     {
-        $categories = Category::paginate(request()->input('pageSize'), ['*'], 'page', request()->input('page') + 1);
+        $cryteria = Filter::stringFilter(request());
+
+        $sort = match (request()->input('sort')) {
+            "asc" => "asc",
+            "desc" => "desc",
+            default => "",
+        };
+
+        if (filled($cryteria)) {
+            $categories = Category::where(...$cryteria)->orderBy($cryteria[0],
+                $sort)->paginate(request()->input('pageSize'),
+                ['*'],
+                'page',
+                request()->input('page') + 1);
+        } else {
+            $categories = Category::paginate(
+                request()->input('pageSize'),
+                ['*'],
+                'page',
+                request()->input('page') + 1
+            );
+        }
+
 
         $categoryCollection = new CategoryCollection($categories);
 
