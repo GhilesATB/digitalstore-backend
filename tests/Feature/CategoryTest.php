@@ -114,6 +114,7 @@ class CategoryTest extends TestCase
         $category = Category::factory()->create();
         $categoryData = Category::factory()->make()->toArray();
         $category['image'] = UploadedFile::fake()->image('test.jpg', 10);
+        $categoryData['image'] = UploadedFile::fake()->image('test.jpg', 10);
 
         Storage::disk('public')->put('test.jpg', $category['image']);
         Storage::disk('public')->put('test_thumbnail.jpg', $category['image']);
