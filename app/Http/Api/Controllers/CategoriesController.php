@@ -9,6 +9,7 @@ use App\Http\Resources\CategoryCollection;
 use App\Http\Resources\CategoryResponse;
 use App\Models\Category;
 use App\Support\Filter\Filter;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Facades\Image;
@@ -144,5 +145,18 @@ class CategoriesController extends Controller
         $category->delete();
 
         return response()->json(null, Response::HTTP_NO_CONTENT);
+    }
+
+    public function download()
+    {
+        $data = [
+            'title' => 'Categories list',
+            'date' => date('d/m/Y'),
+            'categories' => Category::all(),
+        ];
+
+        $pdf = Pdf::loadView('index', $data);
+
+        return $pdf->stream('categories_pdf_example.pdf');
     }
 }

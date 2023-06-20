@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
@@ -25,7 +26,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('users/logout', [AuthController::class, 'logout']);
 
     //categories
+    Route::get('categories/download', [CategoriesController::class, 'download']);
     Route::POST('categories/{category}', [CategoriesController::class, 'update']);
+
     Route::apiResource('categories', CategoriesController::class)->except(['PUT', 'PATCH']);
 
     //permissions
